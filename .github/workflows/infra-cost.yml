@@ -1,0 +1,48 @@
+name: Infrastructure Cost 
+
+on:
+    schedule:
+        - cron: '00 00 1 * *' # Run at midnight UTC on the 1st of every month
+    workflow_dispatch: # Allow manual triggering
+
+permissions:
+    contents: read
+    id-token: write
+
+jobs:
+    collect-infrastructure-cost:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - name: Configure AWS Credentials using OIDC
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+                aws-region: ${{ secrets.AWS_REGION }}
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                python-version: 3.9
+
+            - name: Install dependencies
+              run: |
+                cd infrastructure-cost-savings
+                python -m pip install --upgrade pip
+                pip install -r requirements.txt
+
+            - name: Setup Google Service Account
+              run: |
+                echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_BASE64 }}' | base64 -d > service_account.json
+
+            - name: Run infrastructure cost savings script
+              run: |
+                cd infrastructure-cost-savings
+                python infrastructure-cost-savings.py
+              env:
+                NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+                ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+                GOOGLE_APPLICATION_CREDENTIALS: ../service_account.json
