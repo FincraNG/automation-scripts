@@ -71,10 +71,19 @@ jobs:
       - name: Setup Google Service Account
         run: |
           echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_BASE64 }}' | base64 -d > service_account.json
-      - name: Run Jira KPI data collection
+      - name: Run deployment data collection
         run: |
           cd jira-kpi-to-sheets
           python deployment-frequency.py
+        env:
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}
+          JIRA_URL : ${{ secrets.JIRA_URL }}
+          GOOGLE_APPLICATION_CREDENTIALS: ../service_account.json
+      - name: Run change failure rate collection
+        run: |
+          cd jira-kpi-to-sheets
+          python change-failure-rate.py
         env:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}
