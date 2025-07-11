@@ -6,12 +6,12 @@ import gspread
 
 load_dotenv()
 
-# gc = gspread.service_account()
+gc = gspread.service_account()
 
 
 # Use the path from environment variable or default to service_account.json in current directory
-service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
-gc = gspread.service_account(filename=service_account_path)
+# service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
+# gc = gspread.service_account(filename=service_account_path)
 
 NR_API_KEY = os.getenv("NEW_RELIC_API_KEY")
 ACCOUNT_ID = int(os.getenv("ACCOUNT_ID"))
@@ -96,18 +96,18 @@ def get_transactions_count():
     print(f"Total transactions for the month: {total_transactions}")
     return total_transactions
 
-def cost_per_transaction():
-    # Get the total AWS cost for the month
-    total_cost = get_monthly_cost()
-    # Get the total transactions count
-    total_transactions = get_transactions_count()
-    if total_transactions > 0:
-        cost_per_transaction = total_cost / total_transactions
-        print(cost_per_transaction)
-        return cost_per_transaction
-    else:
-        print("No transactions found for the month.")
-        return None
+# def cost_per_transaction():
+#     # Get the total AWS cost for the month
+#     total_cost = get_monthly_cost()
+#     # Get the total transactions count
+#     total_transactions = get_transactions_count()
+#     if total_transactions > 0:
+#         cost_per_transaction = total_cost / total_transactions
+#         print(cost_per_transaction)
+#         return cost_per_transaction
+#     else:
+#         print("No transactions found for the month.")
+#         return None
 
 
 def get_month():
@@ -118,9 +118,9 @@ def get_month():
 if __name__ == "__main__":
     month = get_month()
     total_infra_cost = get_monthly_cost()
-    cost_per_transact = cost_per_transaction()
+    # cost_per_transact = cost_per_transaction()
     total_transactions = get_transactions_count()
-    row = [month, total_transactions, total_infra_cost, cost_per_transact]
+    row = [month, total_transactions, total_infra_cost]
 
      # Open the Google Sheet and append the data
     print("Updating Google Sheet...")
