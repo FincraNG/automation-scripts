@@ -6,12 +6,12 @@ import gspread
 
 load_dotenv()
 
-gc = gspread.service_account()
+# gc = gspread.service_account()
 
 
 # Use the path from environment variable or default to service_account.json in current directory
-# service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
-# gc = gspread.service_account(filename=service_account_path)
+service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
+gc = gspread.service_account(filename=service_account_path)
 
 NR_API_KEY = os.getenv("NEW_RELIC_API_KEY")
 ACCOUNT_ID = int(os.getenv("ACCOUNT_ID"))
