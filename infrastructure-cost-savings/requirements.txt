@@ -1,2 +1,7 @@
 boto3
 datetime
+requests
+python-dotenv
+gspread
+pyyaml
+python-dateutil
