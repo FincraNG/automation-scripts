@@ -60,7 +60,7 @@ def get_transactions_count():
         "SELECT "
         "  filter(count(*), WHERE message LIKE '%event.payment.initiated%') "
         "  + filter(count(*), WHERE name = 'payout.initiated') "
-        "  + filter(count(*), WHERE event = 'event.collection.initiated') "
+        "  + filter(count(*), WHERE message LIKE '%event.payment.initiated%') "
         "AS 'Total Transactions' "
         "FROM Log "
         "SINCE 1 month ago"
