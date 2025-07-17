@@ -3,3 +3,5 @@ python-dotenv
 gspread
 python-dateutil
 pyyaml
+argparse
+json

@@ -56,7 +56,7 @@ jira_api_url = f"{JIRA_URL}/rest/api/3/search"
 # 'project = "HQ" AND status CHANGED TO "DEPLOYED TO PROD" DURING (-7d, now()) OR status CHANGED TO "POST DEPLOYMENT CHECKS" DURING ("2025-01-01 00:00", "2025-01-31 23:59")'
 
 def get_jql_query_for_team(team):
-    # jql_query = f'project = "{team}" AND status CHANGED FROM "DEPLOYED TO PROD" DURING ("2025-01-01 00:00", "2025-01-31 23:59")' # For looking for specific date ranges
+    # jql_query = f'project = "{team}" AND status CHANGED FROM "DEPLOYED TO PROD" DURING ("2025-06-01 00:00", "2025-06-31 23:59")' # For looking for specific date ranges
     if team == 'Cross Border Product Development':
         return f'project = "{team}" AND status CHANGED TO "POST-DEPLOYMENT QA" DURING (-7d, now())'
     elif team == 'HQ':
@@ -64,7 +64,7 @@ def get_jql_query_for_team(team):
     elif team == 'Kele Mobile App':
         return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT TEST" DURING (-7d, now())'
     elif team == 'Stablecoin VS':
-        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING (-7d, now())'
+        return f'project = "{team}" AND status CHANGED TO s"POST DEPLOYMENT QA" DURING (-7d, now())'
     elif team == 'Global Collection':
         return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING (-7d, now())'
     else:
