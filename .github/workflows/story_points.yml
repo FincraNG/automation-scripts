@@ -1,0 +1,35 @@
+on:
+  workflow_dispatch:
+    inputs:
+      sprint_id:
+        description: 'Sprint ID'
+        required: true
+      board_id:
+        description: 'Board ID'
+        required: true
+      issues:
+        description: 'Comma-separated list of issue keys'
+        required: true
+
+jobs:
+  compute_kpi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install jira requests
+
+      - name: Run KPI script
+        run: |
+          cd jira-kpi-to-sheets
+          python story-points-closed.py \
+            --sprint-id="${{ github.event.inputs.sprint_id }}" \
+            --board-id="${{ github.event.inputs.board_id }}" \
+            --issues='${{ toJson(github.event.inputs.issues) }}'
