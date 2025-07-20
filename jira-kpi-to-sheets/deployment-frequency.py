@@ -64,7 +64,7 @@ def get_jql_query_for_team(team):
     elif team == 'Kele Mobile App':
         return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT TEST" DURING (-7d, now())'
     elif team == 'Stablecoin VS':
-        return f'project = "{team}" AND status CHANGED TO s"POST DEPLOYMENT QA" DURING (-7d, now())'
+        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING (-7d, now())'
     elif team == 'Global Collection':
         return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING (-7d, now())'
     else:
