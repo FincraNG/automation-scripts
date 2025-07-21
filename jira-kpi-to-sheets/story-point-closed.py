@@ -1,30 +1,9 @@
-"""
-This script calculates lead time KPIs from Jira issues and updates a Google Sheet for reporting.
 
-Main tasks:
-- Connects to Jira to fetch issue data related to lead time.
-- Calculates lead time metrics for completed issues over a specified period.
-- Updates a Google Sheet ("Production Reliability Workbook" > "Lead Time") with the calculated KPIs.
-
-Environment variables required:
-- JIRA_API_TOKEN: Jira API token for authentication.
-- JIRA_EMAIL: Jira user email for authentication.
-- GOOGLE_APPLICATION_CREDENTIALS (optional): Path to Google service account credentials.
-
-Dependencies:
-- requests
-- python-dotenv
-- gspread
-"""
-
-# import requests
-# import json
-# import yaml
 import os
 from dotenv import load_dotenv
 import gspread
-# import datetime
-# from dateutil.parser import parse
+import datetime
+import argparse
 
 
 load_dotenv()
@@ -34,31 +13,52 @@ load_dotenv()
 # In GitHub Actions, this file is created from a base64-encoded secret
 # gc = gspread.service_account()
 
-
 # Use the path from environment variable or default to service_account.json in current directory
-# service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
-# gc = gspread.service_account(filename=service_account_path)
+service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
+gc = gspread.service_account(filename=service_account_path)
 
-# Load teams from YAML file
-# This file contains a list of the teams 
-# teams = yaml.safe_load(open('teams.yml'))['teams']
-
-# # Get JIRA credentials from environment variables
-# JIRA_URL = os.getenv("JIRA_URL")
-# JIRA_USERNAME = os.getenv("JIRA_USERNAME")
-# JIRA_API_TOKEN = os.getenv("JIRA_API_TOKEN")
-
-import argparse, json
-
-def main():
+# Function to get story points details from command line arguments from the workflow file
+def story_points_details():
     parser = argparse.ArgumentParser()
     parser.add_argument('--sprint-name', required=True)
     parser.add_argument('--project-name', required=True)
     parser.add_argument('--story-points-sum', required=True)
     args = parser.parse_args()
 
-    total_points = int(args.story_points_sum)
-    print(f"Sprint {args.sprint_name} | Project {args.project_name} -> {total_points} story points")
+    total_points = args.story_points_sum
+    sprint_name = args.sprint_name
+    project_name = args.project_name
+    print(f"Sprint {sprint_name} | Project {project_name} -> {total_points} story points")
+
+    return {
+        "sprint_name": sprint_name,
+        "project_name": project_name,
+        "story_points_sum": total_points
+    }
+
+
+def timestamp():
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def main():
+    timestamp = timestamp()
+    data = story_points_details()
+
+    rows = []
+    row = [timestamp, data["sprint_name"], data["project_name"], data["story_points_sum"]]
+    # Append the row to the list of rows
+    rows.append(row)
+    
+    # Open the Google Sheet and append the data
+    print("Updating Google Sheet...")
+    sh = gc.open("Production Reliability Workbook")
+    worksheet = sh.worksheet("Story Points Closed")
+
+    # Add the story points row
+    worksheet.append_rows(rows, value_input_option="USER_ENTERED")
+
+    print(f"Successfully uploaded story points data for the sprint: {data['sprint_name']} and project: {data['project_name']} at {timestamp}.")
+
 
 if __name__ == '__main__':
     main()
