@@ -1,11 +1,11 @@
 on:
   workflow_dispatch:
     inputs:
-      sprint_id:
-        description: 'Sprint ID'
+      sprint_name:
+        description: 'Sprint Name'
         required: true
-      board_id:
-        description: 'Board ID'
+      project_name:
+        description: 'Project Name'
         required: true
       issues:
         description: 'Comma-separated list of issue keys'
@@ -30,6 +30,6 @@ jobs:
         run: |
           cd jira-kpi-to-sheets
           python story-points-closed.py \
-            --sprint-id="${{ github.event.inputs.sprint_id }}" \
-            --board-id="${{ github.event.inputs.board_id }}" \
-            --issues='${{ toJson(github.event.inputs.issues) }}'
+            --sprint-name="${{ github.event.inputs.sprint_name }}" \
+            --project-name="${{ github.event.inputs.project_name }}" \
+            --issues='${{ github.event.inputs.issues }}'
