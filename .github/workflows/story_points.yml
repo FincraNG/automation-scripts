@@ -24,7 +24,11 @@ jobs:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: pip install jira requests
+        run: | 
+            pip install jira requests
+            cd jira-kpi-to-sheets
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
 
       - name: Run KPI script
         run: |
