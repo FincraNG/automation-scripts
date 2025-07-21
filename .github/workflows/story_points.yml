@@ -7,8 +7,8 @@ on:
       project_name:
         description: 'Project Name'
         required: true
-      issues:
-        description: 'Comma-separated list of issue keys'
+      story-points-sum:
+        description: 'Sum of Story Points'
         required: true
 
 jobs:
@@ -36,4 +36,4 @@ jobs:
           python story-point-closed.py \
             --sprint-name="${{ github.event.inputs.sprint_name }}" \
             --project-name="${{ github.event.inputs.project_name }}" \
-            --issues='${{ github.event.inputs.issues }}'
+            --story-points-sum='${{ github.event.inputs.story-points-sum }}'
