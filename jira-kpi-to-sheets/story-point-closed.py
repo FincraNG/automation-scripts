@@ -36,8 +36,8 @@ load_dotenv()
 
 
 # Use the path from environment variable or default to service_account.json in current directory
-service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
-gc = gspread.service_account(filename=service_account_path)
+# service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
+# gc = gspread.service_account(filename=service_account_path)
 
 # Load teams from YAML file
 # This file contains a list of the teams 
