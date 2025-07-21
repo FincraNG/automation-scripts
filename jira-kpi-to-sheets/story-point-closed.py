@@ -32,12 +32,12 @@ load_dotenv()
 # Initialize Google Sheets client using service account credentials
 # This requires a service_account.json file in the project directory
 # In GitHub Actions, this file is created from a base64-encoded secret
-gc = gspread.service_account()
+# gc = gspread.service_account()
 
 
 # Use the path from environment variable or default to service_account.json in current directory
-# service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
-# gc = gspread.service_account(filename=service_account_path)
+service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
+gc = gspread.service_account(filename=service_account_path)
 
 # Load teams from YAML file
 # This file contains a list of the teams 
@@ -52,8 +52,8 @@ import argparse, json
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--sprint-id', required=True)
-    parser.add_argument('--board-id', required=True)
+    parser.add_argument('--sprint-name', required=True)
+    parser.add_argument('--project-name', required=True)
     parser.add_argument('--issues', required=True)
     args = parser.parse_args()
 
@@ -63,7 +63,7 @@ def main():
         pts = issue.get('storyPoints') or 0
         total_points += pts
 
-    print(f"Sprint {args.sprint_id} | Board {args.board_id} -> {len(issues)} issues, {total_points} story points")
+    print(f"Sprint {args.sprint_name} | Project {args.project_name} -> {len(issues)} issues, {total_points} story points")
 
     # TODO: send totals to DB, metrics system, etc.
 
