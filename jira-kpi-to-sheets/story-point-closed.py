@@ -41,11 +41,11 @@ def timestamp():
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def main():
-    timestamp = timestamp()
+    ts = timestamp()
     data = story_points_details()
 
     rows = []
-    row = [timestamp, data["sprint_name"], data["project_name"], data["story_points_sum"]]
+    row = [ts, data["sprint_name"], data["project_name"], data["story_points_sum"]]
     # Append the row to the list of rows
     rows.append(row)
     
