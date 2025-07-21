@@ -7,7 +7,7 @@ on:
       project_name:
         description: 'Project Name'
         required: true
-      story-points-sum:
+      story_points_sum:
         description: 'Sum of Story Points'
         required: true
 
@@ -36,4 +36,4 @@ jobs:
           python story-point-closed.py \
             --sprint-name="${{ github.event.inputs.sprint_name }}" \
             --project-name="${{ github.event.inputs.project_name }}" \
-            --story-points-sum='${{ github.event.inputs.story-points-sum }}'
+            --story-points-sum='${{ github.event.inputs.story_points_sum }}'
