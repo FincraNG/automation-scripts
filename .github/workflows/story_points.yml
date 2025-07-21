@@ -1,3 +1,5 @@
+name:  Story Points KPI
+
 on:
   workflow_dispatch:
     inputs:
