@@ -20,9 +20,9 @@ Dependencies:
 # import requests
 # import json
 # import yaml
-# import os
-# from dotenv import load_dotenv
-# import gspread
+import os
+from dotenv import load_dotenv
+import gspread
 # import datetime
 # from dateutil.parser import parse
 
