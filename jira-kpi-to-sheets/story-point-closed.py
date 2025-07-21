@@ -54,18 +54,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--sprint-name', required=True)
     parser.add_argument('--project-name', required=True)
-    parser.add_argument('--issues', required=True)
+    parser.add_argument('--story-points-sum', required=True)
     args = parser.parse_args()
 
-    issues = json.loads(args.issues)
-    total_points = 0
-    for issue in issues:
-        pts = issue.get('storyPoints') or 0
-        total_points += pts
-
-    print(f"Sprint {args.sprint_name} | Project {args.project_name} -> {len(issues)} issues, {total_points} story points")
-
-    # TODO: send totals to DB, metrics system, etc.
+    total_points = int(args.story_points_sum)
+    print(f"Sprint {args.sprint_name} | Project {args.project_name} -> {total_points} story points")
 
 if __name__ == '__main__':
     main()
