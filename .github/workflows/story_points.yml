@@ -31,11 +31,9 @@ jobs:
             pip install -r requirements.txt
     
       - name: Setup Google Service Account
-        env:
-            GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
         run: |
-            echo "${GOOGLE_APPLICATION_CREDENTIALS}" | base64 --decode > ${{ github.workspace }}/service_account.json
-
+            echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_BASE64 }}' | base64 -d > service_account.json
+      
       - name: Run KPI script
         run: |
           cd jira-kpi-to-sheets
