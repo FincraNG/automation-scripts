@@ -29,7 +29,7 @@ jobs:
       - name: Run KPI script
         run: |
           cd jira-kpi-to-sheets
-          python story-points-closed.py \
+          python story-point-closed.py \
             --sprint-name="${{ github.event.inputs.sprint_name }}" \
             --project-name="${{ github.event.inputs.project_name }}" \
             --issues='${{ github.event.inputs.issues }}'
