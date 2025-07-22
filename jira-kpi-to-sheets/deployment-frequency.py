@@ -56,16 +56,18 @@ jira_api_url = f"{JIRA_URL}/rest/api/3/search"
 # 'project = "HQ" AND status CHANGED TO "DEPLOYED TO PROD" DURING (-7d, now()) OR status CHANGED TO "POST DEPLOYMENT CHECKS" DURING ("2025-01-01 00:00", "2025-01-31 23:59")'
 
 def get_jql_query_for_team(team):
-    # jql_query = f'project = "{team}" AND status CHANGED FROM "DEPLOYED TO PROD" DURING ("2025-06-01 00:00", "2025-06-31 23:59")' # For looking for specific date ranges
+    # return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING ("2025-06-01 00:00", "2025-06-07 23:59")' # For looking for specific date ranges
     if team == 'Cross Border Product Development':
         return f'project = "{team}" AND status CHANGED TO "POST-DEPLOYMENT QA" DURING (-7d, now())'
     elif team == 'HQ':
-        return f'project = "HQ" AND status CHANGED TO "POST DEPLOYMENT CHECKS" DURING (-7d, now())'
+        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT CHECKS" DURING (-7d, now())'
     elif team == 'Kele Mobile App':
         return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT TEST" DURING (-7d, now())'
     elif team == 'Stablecoin VS':
         return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING (-7d, now())'
     elif team == 'Global Collection':
+        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING (-7d, now())'
+    elif team == 'Global Payments Systems VS':
         return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING (-7d, now())'
     else:
         return None
@@ -158,15 +160,20 @@ def main():
         # team_size = len(teams[team]) if isinstance(teams[team], list) else None
         team_name, deployments_by_engineer, total_deployments, avg_deployments = get_deployments_per_engineer(team, team_size=None, jql_query=jql_query)
 
-        # Create a row for each engineer
-        for engineer, deployment_count in deployments_by_engineer.items():
-            # Include total_deployments only for the first engineer
-            if engineer == list(deployments_by_engineer.keys())[0]:
-                row = [timestamp_value, team_name, total_deployments, engineer, deployment_count, avg_deployments]
-            else:
-                row = ["", "", "", engineer, deployment_count]
-            # row = [current_date, total_deployments, engineer, deployment_count]
+        if total_deployments == 0:
+            row = [timestamp_value, team_name, 0, "N/A", 0, 0]
             rows.append(row)
+        else:
+            for engineer, deployment_count in deployments_by_engineer.items():
+                # Include total_deployments only for the first engineer
+                if engineer == list(deployments_by_engineer.keys())[0]:
+                    row = [timestamp_value, team_name, total_deployments, engineer, deployment_count, avg_deployments]
+                else:
+                    row = ["", "", "", engineer, deployment_count]
+                # row = [current_date, total_deployments, engineer, deployment_count]
+                rows.append(row)
+        # Create a row for each engineer
+
 
     # Open the Google Sheet and append the data
     print("Updating Google Sheet...")
