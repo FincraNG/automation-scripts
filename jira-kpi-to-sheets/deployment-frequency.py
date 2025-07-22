@@ -154,6 +154,7 @@ def main():
     timestamp_value = timestamp()
 
     for team in teams:
+        print(f"Calculating deployments for {team}...")
         jql_query = get_jql_query_for_team(team)
         if not jql_query:
             continue

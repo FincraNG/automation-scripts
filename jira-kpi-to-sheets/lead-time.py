@@ -108,7 +108,7 @@ def get_jql_query_for_team(team):
     #     return f'project = "{team}" AND status CHANGED TO "READY FOR DEPLOYMENT" AND status CHANGED FROM "READY FOR DEPLOYMENT" DURING (-30d, now())'
     # elif team == 'Global Collection':
     #     return f'project = "{team}" AND status CHANGED TO "READY FOR DEPLOYMENT" AND status CHANGED FROM "READY FOR DEPLOYMENT" DURING (-30d, now())'
-    # else:
+    # else:   # For Custom Time   DURING ("2025-06-01 00:00", "2025-06-07 23:59")
     #     return None
     return f'project = "{team}" AND status CHANGED TO "DONE" DURING (-30d, now())'  # Default query for all teams, can be customized per team if needed
 
@@ -133,7 +133,7 @@ def calculate_deployment_to_resolution_lead_time(team, jql_query=None):
     if response.status_code == 200:
         issues = data.get('issues', [])
         if not issues:
-            print("No issues found in the last 7 days.")
+            print(f"No issues found for {team}.")
             return
             
         total_lead_time = 0
@@ -173,6 +173,7 @@ if __name__ == "__main__":
     timestamp = timestamp()
     rows = []
     for team in teams:
+        print(f"Calculating lead time for {team}...")
         jql_query = get_jql_query_for_team(team)
         if not jql_query:
             continue

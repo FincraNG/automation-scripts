@@ -32,13 +32,13 @@ load_dotenv()
 # Initialize Google Sheets client using service account credentials
 # This requires a service_account.json file in the project directory
 # In GitHub Actions, this file is created from a base64-encoded secret
-# gc = gspread.service_account()
+gc = gspread.service_account()
 
 
 
 # Use the path from environment variable or default to service_account.json in current directory
-service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
-gc = gspread.service_account(filename=service_account_path)
+# service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
+# gc = gspread.service_account(filename=service_account_path)
 
 # Load teams from YAML file
 # This file contains a list of the teams 
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     timestamp = timestamp()
     rows = []
     for team in teams:
-
+        print(f"Calculating change failure rate for {team}...")
         jql_query_total = get_jql_query_for_total_deployments(team)
         if not jql_query_total:
             continue
