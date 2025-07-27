@@ -68,6 +68,8 @@ def get_jql_query_for_total_deployments(team):
         return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING (-7d, now())'
     elif team == 'Global Collection':
         return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING (-7d, now())'
+    elif team == 'Treasury VS':
+        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT CHECKS" DURING (-7d, now())'
     else:
         return None
 
@@ -82,8 +84,9 @@ def get_jql_query_for_failed_deployments(team):
         return f'project = "{team}" AND status changed TO "POST DEPLOYMENT QA" DURING (-7d, now()) AND NOT status changed TO Done DURING (-7d, now())'
     elif team == 'Global Collection':
         return f'project = "{team}" AND status changed TO "POST DEPLOYMENT QA" DURING (-7d, now()) AND NOT status changed TO Done DURING (-7d, now())'
-    else:
-        return None
+    elif team == 'Treasury VS':
+        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT CHECKS" DURING (-7d, now()) AND NOT status changed TO Done DURING (-7d, now())'
+    return None
 
 def get_total_deployments(jql_query):
     """
