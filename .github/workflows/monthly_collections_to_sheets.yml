@@ -121,10 +121,17 @@ jobs:
       - name: Setup Google Service Account
         run: |
           echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_BASE64 }}' | base64 -d > service_account.json
-      - name: Run mtbf and update sheets
+      - name: Run MTBF and update sheets
         run: |
           cd uptime-to-sheets
           python mean-time-between-failure.py
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ../service_account.json
+          UPTIME_ROBOT_API_KEY: ${{ secrets.UPTIME_ROBOT_API_KEY }}
+      - name: Run MTTR and update sheets
+        run: |
+          cd uptime-to-sheets
+          python mean-time-to-restore.py
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ../service_account.json
           UPTIME_ROBOT_API_KEY: ${{ secrets.UPTIME_ROBOT_API_KEY }}
