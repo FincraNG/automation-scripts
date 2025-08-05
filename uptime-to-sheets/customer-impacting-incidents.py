@@ -26,7 +26,7 @@ gc = gspread.service_account(filename=service_account_path)
 
 
 # Load Infrastructure repos from yaml file
-internal_services = yaml.safe_load(open('monitors.yml'))['internal-services']
+customer_impacting_services = yaml.safe_load(open('monitors.yml'))['customer-impacting-services']
 
 
 url = "https://api.uptimerobot.com/v2/getMonitors"
@@ -37,20 +37,20 @@ now = datetime.now(timezone.utc)
 # start_of_year = datetime(now.year, 1, 1, tzinfo=timezone.utc)
 # For the month
 # Calculate the start of the previous month
-print(now)
+# print(now)
 if now.month == 1:
     start_of_month = datetime(now.year - 1, 12, 1, tzinfo=timezone.utc)
 else:
     start_of_month = datetime(now.year, now.month - 1, 1, tzinfo=timezone.utc)
 
-print(f"Start of month: {start_of_month}")
+# print(f"Start of month: {start_of_month}")
 # For the past 7 days
 # seven_days_ago = now - timedelta(days=7)
 # For the day
 # start_of_day = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
 # Custom range 
-# start_time = datetime(2025, 6, 1, 0, 0, 0, tzinfo=timezone.utc)
-# end_time = datetime(2025, 6, 30, 23, 59, 59, tzinfo=timezone.utc)
+# start_time = datetime(2025, 7, 1, 0, 0, 0, tzinfo=timezone.utc)
+# end_time = datetime(2025, 7, 31, 23, 59, 59, tzinfo=timezone.utc)
 
 
 def get_logs_data():
@@ -74,7 +74,7 @@ def get_logs_data():
 
 
 
-def get_mean_time_between_failures():
+def get_customer_impacting_incidents():
     data = get_logs_data()
     # print(data['monitors'][0])
     if 'monitors' not in data:
@@ -84,7 +84,7 @@ def get_mean_time_between_failures():
     
     for monitor in data['monitors']:
         #Skip external services
-        if monitor['friendly_name'] not in internal_services:
+        if monitor['friendly_name'] not in customer_impacting_services:
             continue
         status = monitor.get("status")
         if status == 0:
@@ -93,30 +93,16 @@ def get_mean_time_between_failures():
         for log in monitor.get('logs', []):
             log_time = datetime.fromtimestamp(log['datetime'], tz=timezone.utc)
 
-            # if log['type'] == 1 and start_time <= log_time < end_time and log['duration'] > 120:  #Custom range
-            if log['type'] == 1 and log['duration'] > 120 and log_time >= start_of_month:  # For the month
+            if log['type'] == 1 and start_time <= log_time < end_time and log['duration'] > 120:  #Custom range
+            # if log['type'] == 1 and log['duration'] > 120 and log_time >= start_of_month:  # For the month
                 # Type 1 indicates a downtime log
-                # print(log)
+                print(monitor['friendly_name'], log_time, log['duration'])
                 down_times.append(log_time)
-        # 3. Sort them
-        down_times.sort()
     num_failures = len(down_times)
-    print(f"Number of failures: {num_failures}")
-    intervals = []
 
-    # Calculate intervals between downtimes
-    for i in range(1, len(down_times)):
-        interval = (down_times[i] - down_times[i - 1]).total_seconds()/3600  # Convert to hours
-        if interval > 0:  # Only consider positive intervals
-            intervals.append(interval)
+    # print(f"Number of failures: {num_failures}")
 
-    # 5. Calculate MTBF
-    if intervals:
-        mtbf = sum(intervals) / len(intervals)
-    else:
-        mtbf = 0
-
-    return num_failures, mtbf
+    return num_failures
 
 def get_month():
     last_month = datetime.now().replace(day=1) - timedelta(days=1)
@@ -127,15 +113,15 @@ def get_month():
 if __name__ == "__main__":
     
     month = get_month()
-    num_failures, mtbf = get_mean_time_between_failures()
-    row = [month, num_failures, mtbf]
+    num_failures = get_customer_impacting_incidents()
+    row = [month, num_failures]
 
     # Open the Google Sheet and append the data
     print("Updating Google Sheet...")
     sh = gc.open("Production Reliability Workbook")
-    worksheet = sh.worksheet("Mean Time Between Failures")
+    worksheet = sh.worksheet("Customer Impacting Incidents")
     
     # Add the uptime row
     worksheet.append_rows([row], value_input_option="USER_ENTERED")
 
-    print(f"Successfully updated Mean Time Between Failures (MTBF) data for the month: {month}")
+    print(f"Successfully updated Customer Impacting Incidents data for the month: {month}")

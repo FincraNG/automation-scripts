@@ -49,3 +49,21 @@ external-service:
   - VFD Channel
   - Wema Channel
   - Zenith
+customer-impacting-services:
+  - Admin Service
+  - Authentication Service
+  - Checkout Core
+  - Collections Service
+  - Conversions Service
+  - Core Service
+  - Disbursements Service
+  - Fincra Audit Trail
+  - Fincra Checkout
+  - Fincra Merchant Portal
+  - Integrations Service
+  - Kele Api Service
+  - Kele Core Banking
+  - Notifications Service
+  - Quotes Service
+  - Settlements Service
+  - Wallets Service
