@@ -124,4 +124,4 @@ if __name__ == "__main__":
     # Add the uptime row
     worksheet.append_rows([row], value_input_option="USER_ENTERED")
 
-    print(f"Successfully updated Customer Impacting Incidents data for the month: {month}")
+    print(f"Successfully updated Customer Impacting Inc§idents data for the month: {month}")

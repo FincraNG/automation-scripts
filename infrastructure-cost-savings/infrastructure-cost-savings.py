@@ -6,12 +6,12 @@ import gspread
 
 load_dotenv()
 
-# gc = gspread.service_account()
+gc = gspread.service_account()
 
 
 # Use the path from environment variable or default to service_account.json in current directory
-service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
-gc = gspread.service_account(filename=service_account_path)
+# service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
+# gc = gspread.service_account(filename=service_account_path)
 
 NR_API_KEY = os.getenv("NEW_RELIC_API_KEY")
 ACCOUNT_ID = int(os.getenv("ACCOUNT_ID"))
@@ -54,45 +54,120 @@ def get_monthly_cost():
     unit = results['Total']['UnblendedCost']['Unit']
     return amount
 
-def get_transactions_count():
-    # Define NRQL query to get average transaction duration in milliseconds
+def get_payment_initiated_count():
     nrql = (
         "SELECT "
         "  filter(count(*), WHERE message LIKE '%event.payment.initiated%') "
-        "  + filter(count(*), WHERE name = 'payout.initiated') "
-        "  + filter(count(*), WHERE message LIKE '%event.payment.initiated%') "
-        "AS 'Total Transactions' "
+        "AS 'Payment Initiated' "
         "FROM Log "
         "SINCE 1 month ago"
     )
-
-    # Construct the GraphQL query with variables
+    
     payload = {
-            "query": """
-            query($accountId: Int!, $nrql: Nrql!) {
-                actor {
+        "query": """
+        query($accountId: Int!, $nrql: Nrql!) {
+            actor {
                 account(id: $accountId) {
                     nrql(query: $nrql) {
-                    results
+                        results
                     }
                 }
-                }
-            }
-            """,
-            "variables": {
-                "accountId": ACCOUNT_ID,
-                "nrql": nrql
             }
         }
+        """,
+        "variables": {
+            "accountId": ACCOUNT_ID,
+            "nrql": nrql
+        }
+    }
 
-    # Make the API request to New Relic
     response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()  # Raise exception for HTTP errors
+    response.raise_for_status()
     
-    # Parse the response JSON
     data = response.json()
     results = data["data"]["actor"]["account"]["nrql"]["results"]
-    total_transactions = float(results[0]["Total Transactions"])
+    count = float(results[0]["Payment Initiated"])
+    print(f"Payment initiated count: {count}")
+    return count
+
+def get_payout_initiated_count():
+    nrql = (
+        "SELECT "
+        "  filter(count(*), WHERE name = 'payout.initiated') "
+        "AS 'Payout Initiated' "
+        "FROM Log "
+        "SINCE 1 month ago"
+    )
+    
+    payload = {
+        "query": """
+        query($accountId: Int!, $nrql: Nrql!) {
+            actor {
+                account(id: $accountId) {
+                    nrql(query: $nrql) {
+                        results
+                    }
+                }
+            }
+        }
+        """,
+        "variables": {
+            "accountId": ACCOUNT_ID,
+            "nrql": nrql
+        }
+    }
+
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    
+    data = response.json()
+    results = data["data"]["actor"]["account"]["nrql"]["results"]
+    count = float(results[0]["Payout Initiated"])
+    print(f"Payout initiated count: {count}")
+    return count
+
+def get_collection_initiated_count():
+    nrql = (
+        "SELECT "
+        "  filter(count(*), WHERE event = 'event.collection.initiated') "
+        "AS 'Collection Initiated' "
+        "FROM Log "
+        "SINCE 1 month ago"
+    )
+    
+    payload = {
+        "query": """
+        query($accountId: Int!, $nrql: Nrql!) {
+            actor {
+                account(id: $accountId) {
+                    nrql(query: $nrql) {
+                        results
+                    }
+                }
+            }
+        }
+        """,
+        "variables": {
+            "accountId": ACCOUNT_ID,
+            "nrql": nrql
+        }
+    }
+
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    
+    data = response.json()
+    results = data["data"]["actor"]["account"]["nrql"]["results"]
+    count = float(results[0]["Collection Initiated"])
+    print(f"Collection initiated count: {count}")
+    return count
+
+def get_transactions_count():
+    payment_count = get_payment_initiated_count()
+    payout_count = get_payout_initiated_count()
+    collection_count = get_collection_initiated_count()
+    
+    total_transactions = payment_count + payout_count + collection_count
     print(f"Total transactions for the month: {total_transactions}")
     return total_transactions
 
@@ -131,5 +206,3 @@ if __name__ == "__main__":
     worksheet.append_rows([row], value_input_option="USER_ENTERED")
 
     print(f"Successfully updated infrastructure cost savings data for the month: {month}")
-
-
