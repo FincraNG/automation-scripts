@@ -69,15 +69,15 @@ jobs:
           ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
           GOOGLE_APPLICATION_CREDENTIALS: ../service_account.json
         continue-on-error: true          
-      - name: Run Transaction Success Rate
-        run:  |
-          cd nr-metrics-to-sheets
-          python transaction_success_rate.py
-        env:
-          NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
-          ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
-          GOOGLE_APPLICATION_CREDENTIALS: ../service_account.json
-        continue-on-error: true          
+      # - name: Run Transaction Success Rate
+      #   run:  |
+      #     cd nr-metrics-to-sheets
+      #     python transaction_success_rate.py
+      #   env:
+      #     NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+      #     ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      #     GOOGLE_APPLICATION_CREDENTIALS: ../service_account.json
+      #   continue-on-error: true          
 
   collect-jira-kpi-data:
     runs-on: ubuntu-latest
@@ -132,6 +132,13 @@ jobs:
         run: |
           cd uptime-to-sheets
           python mean-time-to-restore.py
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ../service_account.json
+          UPTIME_ROBOT_API_KEY: ${{ secrets.UPTIME_ROBOT_API_KEY }}
+      - name: Run Customer Impacting Incidents and update sheets
+        run: |
+          cd uptime-to-sheets
+          python customer-impacting-incidents.py
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ../service_account.json
           UPTIME_ROBOT_API_KEY: ${{ secrets.UPTIME_ROBOT_API_KEY }}
