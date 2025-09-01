@@ -36,12 +36,12 @@ headers = {
 
 
 def fetch_badly_handled_error_rate():
-    # Define NRQL query to get error count
+    # Define NRQL query to get error count with proper aliases
     nrql = (
         f"SELECT "
-        f"filter(count(*), WHERE message LIKE '%error%' OR message LIKE '%exception%' OR level = 'error' OR severity = 'error' AND level NOT LIKE '%warn%'), "
-        f"filter(count(*), WHERE message LIKE '%error%' OR message LIKE '%exception%' OR level = 'error' OR severity = 'error' AND level NOT LIKE '%warn%' AND (error.httpCode IS NULL OR error.httpCode = '' AND newrelic.ERROR_CODE IS NULL OR newrelic.ERROR_CODE = '' AND httpCode IS NULL OR error.httpCode = '' )), "
-        f"(filter(count(*), WHERE message LIKE '%error%' OR message LIKE '%exception%' OR level = 'error' OR severity = 'error' AND level NOT LIKE '%warn%' AND (error.httpCode IS NULL OR error.httpCode = '' AND newrelic.ERROR_CODE IS NULL OR newrelic.ERROR_CODE = '' AND httpCode IS NULL OR error.httpCode = '' )) * 100.0 / filter(count(*), WHERE message LIKE '%error%' OR message LIKE '%exception%' OR level = 'error' OR severity = 'error' AND level NOT LIKE '%warn%')) as badlyHandledRate "
+        f"filter(count(*), WHERE message LIKE '%error%' OR message LIKE '%exception%' OR level = 'error' OR severity = 'error' AND level NOT LIKE '%warn%') as 'totalErrors', "
+        f"filter(count(*), WHERE message LIKE '%error%' OR message LIKE '%exception%' OR level = 'error' OR severity = 'error' AND level NOT LIKE '%warn%' AND (error.httpCode IS NULL OR error.httpCode = '' AND newrelic.ERROR_CODE IS NULL OR newrelic.ERROR_CODE = '' AND httpCode IS NULL OR error.httpCode = '' )) as 'badlyHandledErrors', "
+        f"(filter(count(*), WHERE message LIKE '%error%' OR message LIKE '%exception%' OR level = 'error' OR severity = 'error' AND level NOT LIKE '%warn%' AND (error.httpCode IS NULL OR error.httpCode = '' AND newrelic.ERROR_CODE IS NULL OR newrelic.ERROR_CODE = '' AND httpCode IS NULL OR error.httpCode = '' )) * 100.0 / filter(count(*), WHERE message LIKE '%error%' OR message LIKE '%exception%' OR level = 'error' OR severity = 'error' AND level NOT LIKE '%warn%')) as 'badlyHandledRate' "
         f"FROM Log "
         f"SINCE 30 days ago "
         f"UNTIL now "
