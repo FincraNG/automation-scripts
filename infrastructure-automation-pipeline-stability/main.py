@@ -53,6 +53,7 @@ def get_terraform_apply_workflow_stats():
     successful_runs = 0
     failed_runs = 0
     failed_actions = []
+    success_rate = 0.0
 
     for repo_name in repos:
         base_url = f"https://api.github.com/repos/{org_name}/{repo_name}/actions/runs"

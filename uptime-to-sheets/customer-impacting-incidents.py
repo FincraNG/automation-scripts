@@ -93,8 +93,8 @@ def get_customer_impacting_incidents():
         for log in monitor.get('logs', []):
             log_time = datetime.fromtimestamp(log['datetime'], tz=timezone.utc)
 
-            if log['type'] == 1 and start_time <= log_time < end_time and log['duration'] > 120:  #Custom range
-            # if log['type'] == 1 and log['duration'] > 120 and log_time >= start_of_month:  # For the month
+            # if log['type'] == 1 and start_time <= log_time < end_time and log['duration'] > 120:  #Custom range
+            if log['type'] == 1 and log['duration'] > 120 and log_time >= start_of_month:  # For the month
                 # Type 1 indicates a downtime log
                 print(monitor['friendly_name'], log_time, log['duration'])
                 down_times.append(log_time)
