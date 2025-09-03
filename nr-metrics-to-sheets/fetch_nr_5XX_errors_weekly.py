@@ -7,7 +7,7 @@ import datetime
 # In GitHub Actions, these will be provided as environment variables
 load_dotenv()
 
-# gc = gspread.service_account()
+# gc = gspreacd ..d.service_account()
 
 # Initialize Google Sheets client using service account credentials
 # Use the path from environment variable or default to service_account.json in current directory
