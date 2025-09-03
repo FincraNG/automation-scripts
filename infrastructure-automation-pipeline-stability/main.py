@@ -23,7 +23,7 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import gspread
-
+import json
 load_dotenv()
 
 # Initialize Google Sheets client using service account credentials
@@ -41,7 +41,7 @@ infrastructure_repos = yaml.safe_load(open('infrastructure-repos.yml'))['infrast
 
 
 org_name = "FincraNG"
-repo_name = "fincra-disbursements"
+# repo_name = "fincra-disbursements"
 token = os.getenv("FINCRA_GITHUB_TOKEN")
 
 
@@ -50,8 +50,10 @@ def get_terraform_apply_workflow_stats():
     repos = infrastructure_repos
     
     total_runs = 0
-    successful_runs = 0
-    failed_runs = 0
+    successful_plan_runs = 0
+    failed_plan_runs = 0
+    successful_apply_runs = 0
+    failed_apply_runs = 0
     failed_actions = []
     success_rate = 0.0
 
@@ -63,8 +65,8 @@ def get_terraform_apply_workflow_stats():
         }
 
         # For specific date range
-        # start_date = datetime(2025, 6, 1)
-        # end_date = datetime(2025, 7, 1)
+        start_date = datetime(2025, 8, 1)
+        end_date = datetime(2025, 9, 1)
 
         # response = requests.get(base_url, headers=headers)
         # if response.status_code != 200:
@@ -72,33 +74,56 @@ def get_terraform_apply_workflow_stats():
         # runs = response.json()["workflow_runs"]
         # apply_monthly_runs = [
         #     run for run in runs
-        #     if start_date <= datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") < end_date and "apply" in run["path"]
+            # if start_date <= datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") < end_date and "apply" in run["path"]
         # ]
 
-        one_month_ago = datetime.now() - timedelta(days=30)
+        one_month_ago = datetime.now() - timedelta(days=120)
 
         response = requests.get(base_url, headers=headers)
+       
         if response.status_code != 200:
             continue   
         runs = response.json()["workflow_runs"]
+        # print(json.dumps(runs, indent=4, sort_keys=True, ensure_ascii=False))
+
+        plan_monthly_runs = [
+            run for run in runs
+            # if datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") > one_month_ago and "plan" in run["path"]
+            if start_date <= datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") < end_date and "plan" in run["path"]
+        ]
+
         apply_monthly_runs = [
             run for run in runs
             if datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") > one_month_ago and "apply" in run["path"]
+            if start_date <= datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") < end_date and "apply" in run["path"]
         ]
 
-        total_runs += len(apply_monthly_runs)
+        total_runs += len(apply_monthly_runs) + len(plan_monthly_runs)
 
         for run in apply_monthly_runs:
+            print(run["conclusion"])
             if run["conclusion"] == "success":
-                successful_runs += 1
+                successful_apply_runs += 1
             elif run["conclusion"] == "failure":
-                failed_runs += 1
+                failed_apply_runs += 1
                 failed_actions.append({
                     "repo": repo_name,
                     "name": run["name"],
                     "url": run["html_url"]
                 })
-                    # Calculate success rate
+        for run in plan_monthly_runs:
+            print(run["conclusion"])
+            if run["conclusion"] == "success":
+                successful_plan_runs += 1
+            elif run["conclusion"] == "failure":
+                failed_plan_runs += 1
+                failed_actions.append({
+                    "repo": repo_name,
+                    "name": run["name"],
+                    "url": run["html_url"]
+                })
+        successful_runs = successful_plan_runs + successful_apply_runs
+        # Calculate success rate
         if total_runs > 0:
             success_rate = successful_runs / total_runs * 100
         else:
@@ -106,7 +131,10 @@ def get_terraform_apply_workflow_stats():
     return {
         "total_runs": total_runs,
         "successful_runs": successful_runs,
-        "failed_runs": failed_runs,
+        "successful_plan_runs": successful_plan_runs,
+        "failed_plan_runs": failed_plan_runs,
+        "successful_apply_runs": successful_apply_runs,
+        "failed_apply_runs": failed_apply_runs,
         "failed_actions": failed_actions,
         "success_rate": success_rate
     }
@@ -124,8 +152,10 @@ def update_google_sheet(stats):
         [
             get_month(),
             stats["total_runs"],
-            stats["successful_runs"],
-            stats["failed_runs"],
+            stats["successful_plan_runs"],
+            stats["failed_plan_runs"],
+            stats["successful_apply_runs"],
+            stats["failed_apply_runs"],
             stats["success_rate"],
             "\n".join(failed_actions) if failed_actions else "No failed actions"
         ]
@@ -144,8 +174,10 @@ def update_google_sheet(stats):
 def main():
     stats = get_terraform_apply_workflow_stats()
     print(f"Total runs: {stats['total_runs']}")
-    print(f"Successful runs: {stats['successful_runs']}")
-    print(f"Failed runs: {stats['failed_runs']}")
+    print(f"Successful apply runs: {stats['successful_apply_runs']}")
+    print(f"Failed apply runs: {stats['failed_apply_runs']}")
+    print(f"Successful plan runs: {stats['successful_plan_runs']}")
+    print(f"Failed plan runs: {stats['failed_plan_runs']}")
     print(f"Success rate: {stats['success_rate']}")
     if stats["failed_actions"]:
         print("\nFailed actions:")
