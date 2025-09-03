@@ -31,7 +31,6 @@ load_dotenv()
 # In GitHub Actions, this file is created from a base64-encoded secret
 # gc = gspread.service_account()
 
-
 # Use the path from environment variable or default to service_account.json in current directory
 service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
 gc = gspread.service_account(filename=service_account_path)
@@ -65,8 +64,8 @@ def get_terraform_apply_workflow_stats():
         }
 
         # For specific date range
-        start_date = datetime(2025, 8, 1)
-        end_date = datetime(2025, 9, 1)
+        # start_date = datetime(2025, 6, 1)
+        # end_date = datetime(2025, 7, 1)
 
         # response = requests.get(base_url, headers=headers)
         # if response.status_code != 200:
@@ -88,20 +87,19 @@ def get_terraform_apply_workflow_stats():
 
         plan_monthly_runs = [
             run for run in runs
-            # if datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") > one_month_ago and "plan" in run["path"]
-            if start_date <= datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") < end_date and "plan" in run["path"]
+            if datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") > one_month_ago and "plan" in run["path"]
+            # if start_date <= datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") < end_date and "plan" in run["path"]
         ]
 
         apply_monthly_runs = [
             run for run in runs
             if datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") > one_month_ago and "apply" in run["path"]
-            if start_date <= datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") < end_date and "apply" in run["path"]
+            # if start_date <= datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") < end_date and "apply" in run["path"]
         ]
 
         total_runs += len(apply_monthly_runs) + len(plan_monthly_runs)
 
         for run in apply_monthly_runs:
-            print(run["conclusion"])
             if run["conclusion"] == "success":
                 successful_apply_runs += 1
             elif run["conclusion"] == "failure":
@@ -112,7 +110,6 @@ def get_terraform_apply_workflow_stats():
                     "url": run["html_url"]
                 })
         for run in plan_monthly_runs:
-            print(run["conclusion"])
             if run["conclusion"] == "success":
                 successful_plan_runs += 1
             elif run["conclusion"] == "failure":
