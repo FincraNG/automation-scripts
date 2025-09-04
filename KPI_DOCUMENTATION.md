@@ -1,6 +1,25 @@
 # Production Reliability KPI Documentation
 
-This document provides comprehensive documentation for all Key Performance Indicators (KPIs) being tracked across Fincra's production systems. Each KPI includes its definition, measurement methodology, data sources, and the automation workflows that support it.
+This document provides comprehensive documentation for all Key Performance Indicators (KPIs) being tracked. Each KPI includes its definition, measurement methodology, data sources, and the automation workflows that support it.
+
+## Table of Contents
+
+1. [Infrastructure Automation Health Check](#infrastructure-automation-health-check)
+2. [Lead Time](#lead-time)
+3. [Story Points Closed](#story-points-closed)
+4. [Change Failure Rate](#change-failure-rate)
+5. [Deployment Frequency](#deployment-frequency)
+6. [Average Deployments per Engineer](#average-deployments-per-engineer)
+7. [Mean Time Between Failures (MTBF)](#mean-time-between-failures)
+8. [Mean Time To Restore (MTTR)](#mean-time-to-restore)
+9. [Customer Impacting Incidents](#customer-impacting-incidents)
+10. [Service Uptime](#service-uptime)
+11. [Transaction Success Rate](#transaction-success-rate)
+12. [Badly Handled Error Rate](#badly-handled-error-rate)
+13. [Error Rate Metrics](#error-rate-metrics)
+14. [Infrastructure Pipeline Stability](#infrastructure-pipeline-stability)
+15. [Infrastructure Cost Efficiency](#infrastructure-cost-efficiency)
+16. [Infrastructure Provisioning Success Rate](#infrastructure-provisioning-success-rate)
 
 ### Infrastructure Automation Health Check
 
@@ -26,24 +45,6 @@ Measures the health and reliability of infrastructure automation workflows acros
 - Identifies failed actions for investigation
 - Reports daily aggregated metrics to tracking worksheet
 
-## Table of Contents
-
-1. [Infrastructure Automation Health Check](#infrastructure-automation-health-check)
-2. [Lead Time](#lead-time)
-3. [Story Points Closed](#story-points-closed)
-4. [Change Failure Rate](#change-failure-rate)
-5. [Deployment Frequency](#deployment-frequency)
-6. [Average Deployments per Engineer](#average-deployments-per-engineer)
-7. [Mean Time Between Failures (MTBF)](#mean-time-between-failures)
-8. [Mean Time To Restore (MTTR)](#mean-time-to-restore)
-9. [Customer Impacting Incidents](#customer-impacting-incidents)
-10. [Service Uptime](#service-uptime)
-11. [Transaction Success Rate](#transaction-success-rate)
-12. [Badly Handled Error Rate](#badly-handled-error-rate)
-13. [Error Rate Metrics](#error-rate-metrics)
-14. [Infrastructure Pipeline Stability](#infrastructure-pipeline-stability)
-15. [Infrastructure Cost Efficiency](#infrastructure-cost-efficiency)
-16. [Infrastructure Provisioning Success Rate](#infrastructure-provisioning-success-rate)
 
 ### Lead Time
 
