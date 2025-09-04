@@ -1,4 +1,4 @@
-# Production Reliability KPI Documentation
+# KPI Documentation
 
 This document provides comprehensive documentation for all Key Performance Indicators (KPIs) being tracked. Each KPI includes its definition, measurement methodology, data sources, and the automation workflows that support it.
 
