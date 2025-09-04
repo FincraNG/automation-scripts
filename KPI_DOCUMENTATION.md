@@ -21,6 +21,33 @@ This document provides comprehensive documentation for all Key Performance Indic
 15. [Infrastructure Cost Efficiency](#infrastructure-cost-efficiency)
 16. [Infrastructure Provisioning Success Rate](#infrastructure-provisioning-success-rate)
 
+## Data Collection and Storage
+
+All KPIs are collected and stored in the "Production Reliability Workbook" Google Sheets document, with different worksheets for each metric. Data collection is automated through various APIs:
+
+- Jira API for development metrics
+- New Relic API for application performance metrics
+- UptimeRobot API for uptime and incident metrics
+- AWS Cost Explorer API for infrastructure costs
+- GitHub API for pipeline statistics
+
+Updates are performed through GitHub Actions workflows on daily, weekly, or monthly schedules depending on the metric.
+
+## Repository Structure
+
+```
+.
+├── infra-automation-health-check/        
+├── infra-config-drift-audit/            
+├── infrastructure-automation-pipeline-stability/
+├── infrastructure-cost-savings/          # Cost efficiency tracking
+├── jira-kpi-to-sheets/                  # Development metrics
+├── nr-metrics-to-sheets/                # Application metrics
+└── uptime-to-sheets/                    # Uptime and incident metrics
+```
+
+Each directory contains the scripts and configuration files needed to collect and report its respective metrics.
+
 ### Infrastructure Automation Health Check
 
 **Definition**  
@@ -476,29 +503,4 @@ Measures the success rate of infrastructure "apply" workflow runs in Terraform-m
 - Cost per Transaction = Monthly AWS Cost / Total Transactions
 
 
-## Data Collection and Storage
 
-All KPIs are collected and stored in the "Production Reliability Workbook" Google Sheets document, with different worksheets for each metric. Data collection is automated through various APIs:
-
-- Jira API for development metrics
-- New Relic API for application performance metrics
-- UptimeRobot API for uptime and incident metrics
-- AWS Cost Explorer API for infrastructure costs
-- GitHub API for pipeline statistics
-
-Updates are performed through GitHub Actions workflows on daily, weekly, or monthly schedules depending on the metric.
-
-## Repository Structure
-
-```
-.
-├── infra-automation-health-check/        g
-├── infra-config-drift-audit/            
-├── infrastructure-automation-pipeline-stability/
-├── infrastructure-cost-savings/          # Cost efficiency tracking
-├── jira-kpi-to-sheets/                  # Development metrics
-├── nr-metrics-to-sheets/                # Application metrics
-└── uptime-to-sheets/                    # Uptime and incident metrics
-```
-
-Each directory contains the scripts and configuration files needed to collect and report its respective metrics.
