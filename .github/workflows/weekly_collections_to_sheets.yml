@@ -119,3 +119,28 @@ jobs:
                 GOOGLE_APPLICATION_CREDENTIALS: ../service_account.json
                 FINCRA_GITHUB_TOKEN: ${{ secrets.FINCRA_GITHUB_TOKEN }}
 
+  collect-jira-team-sight-weekly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: |
+          cd team-sight
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Setup Google Service Account
+        run: |
+          echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_BASE64 }}' | base64 -d > service_account.json
+      - name: Run weekly team sight data collection
+        run: |
+          cd team-sight
+          python team-sight-weekly.py
+        env:
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}
+          JIRA_URL : ${{ secrets.JIRA_URL }}
+          GOOGLE_APPLICATION_CREDENTIALS: ../service_account.json

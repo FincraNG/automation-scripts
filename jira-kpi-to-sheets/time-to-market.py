@@ -1,10 +1,10 @@
 """
-This script calculates lead time KPIs from Jira issues and updates a Google Sheet for reporting.
+This script calculates time-to-market time KPIs from Jira issues and updates a Google Sheet for reporting.
 
 Main tasks:
-- Connects to Jira to fetch issue data related to lead time.
-- Calculates lead time metrics for completed issues over a specified period.
-- Updates a Google Sheet ("Production Reliability Workbook" > "Lead Time") with the calculated KPIs.
+- Connects to Jira to fetch issue data related to time-to-market time.
+- Calculates time-to-market time metrics for completed issues over a specified period.
+- Updates a Google Sheet ("Production Reliability Workbook" > "time-to-market Time") with the calculated KPIs.
 
 Environment variables required:
 - JIRA_API_TOKEN: Jira API token for authentication.
@@ -25,6 +25,7 @@ from dotenv import load_dotenv
 import gspread
 import datetime
 from dateutil.parser import parse
+from datetime import datetime, timezone, timedelta
 
 
 load_dotenv()
@@ -78,7 +79,7 @@ def get_issue_changelog(issue_key):
         start_at += 100
     return all_histories  
 
-def find_deployment_timestamps(histories):
+def find_timestamps(histories):
     entry_time = None
     exit_time = None
     
@@ -86,17 +87,22 @@ def find_deployment_timestamps(histories):
         created = parse(history['created'])
         for item in history.get('items', []):
             if item['field'] == 'status':
+                # print(f"Item: {item}")   # Debugging line
                 # print(f"{item}")   # Debugging line
-                if item['toString'] == 'To Do':
+                # Only consider entry when transitioning from BACKLOG to To Do
+                if item['toString'] == 'To Do' and item['fromString'] == 'BACKLOG':
+                    print(f"Item: {item} timestamp: {created}")   # Debugging line
                     entry_time = created
-                elif item['toString'] == 'DONE' and team == 'HQ':
+                elif (item['toString'] == 'Done' or item['toString'] == 'DONE') and entry_time:
                     exit_time = created
-                elif item['toString'] == 'Done' and team != 'HQ':
-                    exit_time = created
-    # print(f"Entry Time: {entry_time}, Exit Time: {exit_time}")  # Debugging line
+    print(f"Entry Time: {entry_time}, Exit Time: {exit_time}")  # Debugging line
+
     return entry_time, exit_time    
 
-def get_jql_query_for_team(team):
+window_start = datetime(2025, 7, 1, 0, 0, 0, tzinfo=timezone.utc).strftime('%Y-%m-%d')
+window_end = datetime(2025, 7, 31, 23, 59, 59, tzinfo=timezone.utc).strftime('%Y-%m-%d')
+
+def get_jql_query_for_team(team, window_start=window_start, window_end=window_end):
  # jql_query = 'project = "{team}" AND status CHANGED TO "READY TO DEPLOY" AND status CHANGED FROM "READY TO DEPLOY" DURING ("2025-04-01","2025-04-31")'
     # if team == 'Cross Border Product Development':
     #     return f'project = "{team}" AND status CHANGED TO "READY FOR DEPLOYMENT" AND status CHANGED FROM "READY FOR DEPLOYMENT" DURING (-30d, now())'
@@ -110,17 +116,18 @@ def get_jql_query_for_team(team):
     #     return f'project = "{team}" AND status CHANGED TO "READY FOR DEPLOYMENT" AND status CHANGED FROM "READY FOR DEPLOYMENT" DURING (-30d, now())'
     # else:   # For Custom Time   DURING ("2025-06-01 00:00", "2025-06-07 23:59")
     #     return None
-    return f'project = "{team}" AND status CHANGED TO "DONE" DURING (-30d, now())'  # Default query for all teams, can be customized per team if needed
-
+    # return f'project = "{team}" AND status CHANGED TO "DONE" DURING (-30d, now())'  # Default query for all teams, can be customized per team if needed
+    return f'project = "{team}" AND status CHANGED TO "DONE" DURING ("{window_start}", "{window_end}")'  # Default query for all teams, can be customized per team if needed
 
 
 #  jql_query = 'project = "Cross Border Product Development" AND status CHANGED TO "READY FOR DEPLOYMENT" AND status CHANGED FROM "READY FOR DEPLOYMENT" DURING (-30d, now())'
     # jql_query = 'project = "Cross Border Product Development" AND status CHANGED TO "READY FOR DEPLOYMENT" AND status CHANGED FROM "READY FOR DEPLOYMENT" DURING ("2025-04-01","2025-04-31")'
-     
- 
-def calculate_deployment_to_resolution_lead_time(team, jql_query=None):
-   
+
+
+def calculate_time_to_market(team, jql_query=None):
+
     # Set parameters for the API request
+    print(f"JQL Query for {team}: {jql_query}")  # Debugging line
     params = {
         'jql': jql_query,
         'fields': 'created, status, issuetype, resolutiondate, customDocField, summary, reporter',
@@ -136,60 +143,67 @@ def calculate_deployment_to_resolution_lead_time(team, jql_query=None):
             print(f"No issues found for {team}.")
             return
             
-        total_lead_time = 0
-        total_issues = len(issues)
+        total_time_to_market = 0
+        total_issues = 0  # Initialize counter for valid issues only
+        
 
-        for issue in issues:                                                                         
-            created_time = parse(issue['fields']['created'])
+        for issue in issues :                                                                         
+            # created_time = parse(issue['fields']['created'])
+            # Skip bugs
+            if issue['fields']['issuetype']['name'].lower() == 'bug':
+                continue
+
             issue_key = issue['key']
             # Get changelog for each issue
             histories = get_issue_changelog(issue_key)
-            # Find deployment timestamps
-            entry_time, exit_time = find_deployment_timestamps(histories)
-            # print(f" - team: {team}, Created: {created_time}, Exit: {exit_time}")  # Debugging line
-            if created_time and exit_time:
-                # Calculate lead time in hours
-                lead_time = (exit_time - created_time).total_seconds() / 3600
-                total_lead_time += lead_time
+            # Find timestamps
+            entry_time, exit_time = find_timestamps(histories)
+            print(f" - issue: {issue_key}, entry_time: {entry_time}, exit_time: {exit_time}")  # Debugging line
+            if entry_time and exit_time:
+                total_issues += 1  # Increment for each valid issue
+                # Calculate time-to-market time in hours
+                time_to_market = (exit_time - entry_time).total_seconds() / 3600
+                total_time_to_market += time_to_market
 
+        print(f"Total issues found for {team}: {total_issues}") 
         # Calculate average lead time
         if total_issues > 0:
-            avg_lead_time = total_lead_time / total_issues
-            # print(f"Average lead time for {team}: {avg_lead_time:.2f} hours") # Debugging line
-            return team, total_issues, avg_lead_time
-
+            avg_time_to_market = total_time_to_market / total_issues
+            # print(f"Average lead time for {team}: {avg_time_to_market:.2f} hours") # Debugging line
+            return team, total_issues, avg_time_to_market
+        
     # Get today's date for the date label row
 def get_month():
-    last_month = datetime.datetime.now().replace(day=1) - datetime.timedelta(days=1)
+    last_month = datetime.now().replace(day=1) - timedelta(days=1)
     formatted_month = last_month.strftime("%B %Y")
     # Return the formatted date row
     return [f"▶ {formatted_month} ◀"] + [""] * 6
 
 def timestamp():
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 if __name__ == "__main__":
     month = get_month()
     timestamp = timestamp()
     rows = []
     for team in teams:
-        print(f"Calculating lead time for {team}...")
+        print(f"Calculating time to market for {team}...")
         jql_query = get_jql_query_for_team(team)
         if not jql_query:
             continue
         
-        result = calculate_deployment_to_resolution_lead_time(team, jql_query=jql_query)
+        result = calculate_time_to_market(team, jql_query=jql_query)
         if result:
-            team, total_issues, avg_lead_time = result
-            row = [timestamp, team, avg_lead_time]
+            team, total_issues, avg_time_to_market = result
+            row = [ timestamp, team, total_issues, avg_time_to_market]
         else:
-            row = [timestamp, team, 'N/A']
+            row = [ timestamp, team, 'N/A']
         # Append the row to the list of rows
         rows.append(row)
     # Open the Google Sheet and append the data
     print("Updating Google Sheet...")
     sh = gc.open("Production Reliability Workbook")
-    worksheet = sh.worksheet("Lead Time")
+    worksheet = sh.worksheet("Time to Market")
 
      # Add the date separator row
     worksheet.append_rows([month], value_input_option="USER_ENTERED")
@@ -206,14 +220,14 @@ if __name__ == "__main__":
 #     # Get changelog for each issue
 #     histories = get_issue_changelog(issue_key)
 #     # Find deployment timestamps
-#     entry_time, exit_time = find_deployment_timestamps(histories)
+#     entry_time, exit_time = find_timestamps(histories)
     
 #     if entry_time and exit_time:
-#         # Calculate lead time in hours
-#         lead_time = (exit_time - entry_time).total_seconds() / 3600
-#         total_lead_time += lead_time
+#         # Calculate time-to-market time in hours
+#         time_to_market = (exit_time - entry_time).total_seconds() / 3600
+#         total_time_to_market += time_to_market
         
-# # Calculate average lead time
+# # Calculate average time-to-market time
 # if total_issues > 0:
-#     avg_lead_time = total_lead_time / total_issues
-#     return team, total_issues, avg_lead_time
+#     avg_time_to_market = total_time_to_market / total_issues
+#     return team, total_issues, avg_time_to_market
