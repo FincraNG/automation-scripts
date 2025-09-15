@@ -71,10 +71,10 @@ jobs:
       - name: Setup Google Service Account
         run: |
           echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_BASE64 }}' | base64 -d > service_account.json
-      - name: Run Team Sight Monthly Report
+      - name: Run Team Sight daily Report
         run: |
           cd team-sight
-          python team-sight-monthly.py
+          python team-sight-daily.py
         env:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
