@@ -77,6 +77,6 @@ jobs:
           python team-sight-daily.py
         env:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}
           JIRA_URL: ${{ secrets.JIRA_URL }}
           GOOGLE_APPLICATION_CREDENTIALS: ../service_account.json
