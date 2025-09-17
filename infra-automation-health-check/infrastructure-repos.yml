@@ -3,3 +3,11 @@ infrastructure-repos:
   - fincra3-infra
   - kele-app-infra
   - fincra-org-infra
+  - fincra-infra-terraform
+  - fincra-infra
+  - velfi-infra
+  - seamless-infra
+  - kele-app-infra
+  - kandon-infra
+  - bytestacks-huawei-infra
+  - fincra3-infra
