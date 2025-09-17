@@ -4,7 +4,7 @@ import yaml
 import os
 from dotenv import load_dotenv
 import gspread
-import datetime
+from datetime import datetime, timezone, timedelta
 from dateutil.parser import parse
 
 
@@ -33,24 +33,23 @@ JIRA_API_TOKEN = os.getenv("JIRA_API_TOKEN")
 jira = requests.Session()
 jira.auth = (JIRA_USERNAME, JIRA_API_TOKEN) 
 # Set JIRA API URL
-jira_api_url = f"{JIRA_URL}/rest/api/3/search"
+jira_api_url = f"{JIRA_URL}/rest/api/3/search/jql"
 
 
 
 
 def get_daily_window():
     """Returns the start and end dates for a daily window (past 24 hours)"""
-    end_date = datetime.datetime.now().strftime('%Y/%m/%d')
-    start_date = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y/%m/%d')
+    end_date = datetime.now().strftime('%Y/%m/%d')
+    start_date = (datetime.now() - timedelta(days=1)).strftime('%Y/%m/%d')
     return start_date, end_date
 
 
 # Default to daily window
 window_start, window_end = get_daily_window()
 
-# To change window type, uncomment one of these:
-# window_start, window_end = get_daily_window()
-# window_start, window_end = get_monthly_window()
+# window_start = datetime(2025, 9, 15, 0, 0, 0, tzinfo=timezone.utc).strftime('%Y/%m/%d')
+# window_end = datetime(2025, 9, 16, 23, 59, 59, tzinfo=timezone.utc).strftime('%Y/%m/%d')
 
 def get_issue_changelog(issue_key):
     start_at = 0
@@ -153,7 +152,7 @@ def get_issues_for_team(team, jql_query=None):
             # If the ticket is still "In Progress", recalculate duration
             if last_status == 'In Progress' and first_entered_in_progress_at:
                 # Fix: Use timezone-aware datetime.now()
-                now = datetime.datetime.now(first_entered_in_progress_at.tzinfo)
+                now = datetime.now(first_entered_in_progress_at.tzinfo)
                 in_progress_duration_hours = (now - first_entered_in_progress_at).total_seconds() / 3600
                 left_in_progress_at = None
                 done_at = None
@@ -166,6 +165,7 @@ def get_issues_for_team(team, jql_query=None):
         return all_issues
     else:
         print(f"Error fetching issues for {team}: {response.status_code}")
+        print(f"Error details: {data}")
         return None
 
 def main(window_start=window_start, window_end=window_end):
@@ -207,7 +207,7 @@ def main(window_start=window_start, window_end=window_end):
     sh = gc.open("TeamSight Workbook Daily")
     
     # Create a new worksheet with today's date
-    sheet_title = f'TeamSight Daily {datetime.datetime.now().strftime("%Y-%m-%d")}'
+    sheet_title = f'TeamSight Daily {datetime.now().strftime("%Y-%m-%d")}'
 
     # Check if worksheet with this name already exists
     try:

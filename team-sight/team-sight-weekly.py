@@ -33,7 +33,7 @@ JIRA_API_TOKEN = os.getenv("JIRA_API_TOKEN")
 jira = requests.Session()
 jira.auth = (JIRA_USERNAME, JIRA_API_TOKEN) 
 # Set JIRA API URL
-jira_api_url = f"{JIRA_URL}/rest/api/3/search"
+jira_api_url = f"{JIRA_URL}/rest/api/3/search/jql"
 
 
 def get_weekly_window():

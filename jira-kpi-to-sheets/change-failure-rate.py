@@ -53,8 +53,9 @@ JIRA_API_TOKEN = os.getenv("JIRA_API_TOKEN")
 jira = requests.Session()
 jira.auth = (JIRA_USERNAME, JIRA_API_TOKEN) 
 # Set JIRA API URL
-jira_api_url = f"{JIRA_URL}/rest/api/3/search"
+jira_api_url = f"{JIRA_URL}/rest/api/3/search/jql"
 # Define JQL query to get issues moved to Done in the last 7 days
+
 
 def get_jql_query_for_total_deployments(team):
     # jql_query = f'project = "{team}" AND status CHANGED FROM "DEPLOYED TO PROD" DURING ("2025-06-01 00:00", "2025-06-31 23:59")' # For looking for specific date ranges
@@ -67,6 +68,8 @@ def get_jql_query_for_total_deployments(team):
     elif team == 'Stablecoin VS':
         return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING (-7d, now())'
     elif team == 'Global Collection':
+        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING (-7d, now())'
+    elif team == 'Global Payments Systems VS':
         return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING (-7d, now())'
     elif team == 'Treasury VS':
         return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT CHECKS" DURING (-7d, now())'
@@ -83,6 +86,8 @@ def get_jql_query_for_failed_deployments(team):
     elif team == 'Stablecoin VS':
         return f'project = "{team}" AND status changed TO "POST DEPLOYMENT QA" DURING (-7d, now()) AND NOT status changed TO Done DURING (-7d, now())'
     elif team == 'Global Collection':
+        return f'project = "{team}" AND status changed TO "POST DEPLOYMENT QA" DURING (-7d, now()) AND NOT status changed TO Done DURING (-7d, now())'
+    elif team == 'Global Payments Systems VS':
         return f'project = "{team}" AND status changed TO "POST DEPLOYMENT QA" DURING (-7d, now()) AND NOT status changed TO Done DURING (-7d, now())'
     elif team == 'Treasury VS':
         return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT CHECKS" DURING (-7d, now()) AND NOT status changed TO Done DURING (-7d, now())'

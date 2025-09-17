@@ -50,7 +50,7 @@ teams = yaml.safe_load(open('teams.yml'))['teams']
 jira = requests.Session()
 jira.auth = (JIRA_USERNAME, JIRA_API_TOKEN) 
 # Set JIRA API URL
-jira_api_url = f"{JIRA_URL}/rest/api/3/search"
+jira_api_url = f"{JIRA_URL}/rest/api/3/search/jql"
 # Define JQL query to get issues moved to Done in the last 7 days
 
 # 'project = "HQ" AND status CHANGED TO "DEPLOYED TO PROD" DURING (-7d, now()) OR status CHANGED TO "POST DEPLOYMENT CHECKS" DURING ("2025-01-01 00:00", "2025-01-31 23:59")'

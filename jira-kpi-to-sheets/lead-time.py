@@ -52,7 +52,7 @@ JIRA_API_TOKEN = os.getenv("JIRA_API_TOKEN")
 jira = requests.Session()
 jira.auth = (JIRA_USERNAME, JIRA_API_TOKEN) 
 # Set JIRA API URL
-jira_api_url = f"{JIRA_URL}/rest/api/3/search"
+jira_api_url = f"{JIRA_URL}/rest/api/3/search/jql"
 # Define JQL query to get issues moved to Done in the last 7 days
 
 def get_issue_changelog(issue_key):
