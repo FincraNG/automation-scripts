@@ -64,8 +64,9 @@ def get_terraform_apply_workflow_stats():
         }
 
         # For specific date range
-        # start_date = datetime(2025, 6, 1)
-        # end_date = datetime(2025, 7, 1)
+        # Set time to start of the day for start_date and end of the day for end_date
+        # start_date = datetime(2025, 8, 1, 0, 0, 0)
+        # end_date = datetime(2025, 9, 1, 23, 59, 59)
 
         # response = requests.get(base_url, headers=headers)
         # if response.status_code != 200:
