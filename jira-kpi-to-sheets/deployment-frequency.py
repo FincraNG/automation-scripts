@@ -99,7 +99,7 @@ def get_deployments_per_engineer(team,team_size=None, jql_query=None):
             del deployments_by_engineer['Unassigned']
 
         num_engineers = len(deployments_by_engineer) or 1  # Prevent division by zero
-        avg_deployments = total_deployments / num_engineers
+        # avg_deployments = total_deployments / num_engineers
 
         # if team_size:
         #     avg_deployments = total_deployments / team_size if team_size > 0 else 0
@@ -107,7 +107,7 @@ def get_deployments_per_engineer(team,team_size=None, jql_query=None):
         #     num_engineers = len(deployments_by_engineer) or 1  # Prevent division by zero
         #     avg_deployments = total_deployments / num_engineers
 
-        return team, deployments_by_engineer, total_deployments, avg_deployments
+        return team, deployments_by_engineer, total_deployments
 
     except requests.exceptions.RequestException as e:
         print(f"Error fetching data from JIRA: {e}")
@@ -161,7 +161,7 @@ def main():
         if not jql_query:
             continue
         # team_size = len(teams[team]) if isinstance(teams[team], list) else None
-        team_name, deployments_by_engineer, total_deployments, avg_deployments = get_deployments_per_engineer(team, team_size=None, jql_query=jql_query)
+        team_name, deployments_by_engineer, total_deployments = get_deployments_per_engineer(team, team_size=None, jql_query=jql_query)
 
         if total_deployments == 0:
             row = [timestamp_value, team_name, 0, "N/A", 0, 0]
@@ -170,7 +170,7 @@ def main():
             for engineer, deployment_count in deployments_by_engineer.items():
                 # Include total_deployments only for the first engineer
                 if engineer == list(deployments_by_engineer.keys())[0]:
-                    row = [timestamp_value, team_name, total_deployments, engineer, deployment_count, avg_deployments]
+                    row = [timestamp_value, team_name, total_deployments, engineer, deployment_count]
                 else:
                     row = ["", "", "", engineer, deployment_count]
                 # row = [current_date, total_deployments, engineer, deployment_count]
