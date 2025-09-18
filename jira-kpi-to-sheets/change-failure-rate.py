@@ -23,8 +23,8 @@ import yaml
 import os
 from dotenv import load_dotenv
 import gspread
-import datetime
 from dateutil.parser import parse
+from datetime import datetime, timezone, timedelta
 
 
 load_dotenv()
@@ -32,13 +32,13 @@ load_dotenv()
 # Initialize Google Sheets client using service account credentials
 # This requires a service_account.json file in the project directory
 # In GitHub Actions, this file is created from a base64-encoded secret
-# gc = gspread.service_account()
+gc = gspread.service_account()
 
 
 
 # Use the path from environment variable or default to service_account.json in current directory
-service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
-gc = gspread.service_account(filename=service_account_path)
+# service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
+# gc = gspread.service_account(filename=service_account_path)
 
 # Load teams from YAML file
 # This file contains a list of the teams 
@@ -57,46 +57,55 @@ jira_api_url = f"{JIRA_URL}/rest/api/3/search/jql"
 # Define JQL query to get issues moved to Done in the last 7 days
 
 
+window_start = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y/%m/%d')
+window_end = datetime.datetime.now().strftime('%Y/%m/%d')
+
+# #custom date range
+# window_start = datetime(2025, 9, 7, 0, 0, 0, tzinfo=timezone.utc).strftime('%Y-%m-%d')
+# window_end = datetime(2025, 9, 13, 23, 59, 59, tzinfo=timezone.utc).strftime('%Y-%m-%d')
+
+
 def get_jql_query_for_total_deployments(team):
     # jql_query = f'project = "{team}" AND status CHANGED FROM "DEPLOYED TO PROD" DURING ("2025-06-01 00:00", "2025-06-31 23:59")' # For looking for specific date ranges
     if team == 'Cross Border Product Development':
-        return f'project = "{team}" AND status CHANGED TO "POST-DEPLOYMENT QA" DURING (-7d, now())'
+        return f'project = "{team}" AND status CHANGED TO "POST-DEPLOYMENT QA" DURING ({window_start}, {window_end})'
     elif team == 'HQ':
-        return f'project = "HQ" AND status CHANGED TO "POST DEPLOYMENT CHECKS" DURING (-7d, now())'
+        return f'project = "HQ" AND status CHANGED TO "POST DEPLOYMENT CHECKS" DURING ({window_start}, {window_end})'
     elif team == 'Kele Mobile App':
-        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT TEST" DURING (-7d, now())'
+        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT TEST" DURING ({window_start}, {window_end})'
     elif team == 'Stablecoin VS':
-        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING (-7d, now())'
+        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING ({window_start}, {window_end})'
     elif team == 'Global Collection':
-        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING (-7d, now())'
+        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING ({window_start}, {window_end})'
     elif team == 'Global Payments Systems VS':
-        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING (-7d, now())'
+        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT QA" DURING ({window_start}, {window_end})'
     elif team == 'Treasury VS':
-        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT CHECKS" DURING (-7d, now())'
+        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT CHECKS" DURING ({window_start}, {window_end})'
     else:
         return None
 
 def get_jql_query_for_failed_deployments(team):
     if team == 'Cross Border Product Development':
-        return f'project = "{team}" AND status changed TO "Post-Deployment QA" DURING (-7d, now()) AND NOT status changed TO Done DURING (-7d, now())'
+        return f'project = "{team}" AND status changed TO "Post-Deployment QA" DURING ({window_start}, {window_end}) AND NOT status changed TO Done DURING ({window_start}, {window_end})'
     elif team == 'HQ':
-        return f'project = "{team}" AND status changed TO "POST DEPLOYMENT CHECKS" DURING (-7d, now()) AND NOT status changed TO Done DURING (-7d, now())'
+        return f'project = "{team}" AND status changed TO "POST DEPLOYMENT CHECKS" DURING ({window_start}, {window_end}) AND NOT status changed TO Done DURING ({window_start}, {window_end})'
     elif team == 'Kele Mobile App':
-        return f'project = "{team}" AND status changed TO "POST DEPLOYMENT TEST" DURING (-7d, now()) AND NOT status changed TO Done DURING (-7d, now())'
+        return f'project = "{team}" AND status changed TO "POST DEPLOYMENT TEST" DURING ({window_start}, {window_end}) AND NOT status changed TO Done DURING ({window_start}, {window_end})'
     elif team == 'Stablecoin VS':
-        return f'project = "{team}" AND status changed TO "POST DEPLOYMENT QA" DURING (-7d, now()) AND NOT status changed TO Done DURING (-7d, now())'
+        return f'project = "{team}" AND status changed TO "POST DEPLOYMENT QA" DURING ({window_start}, {window_end}) AND NOT status changed TO Done DURING ({window_start}, {window_end})'
     elif team == 'Global Collection':
-        return f'project = "{team}" AND status changed TO "POST DEPLOYMENT QA" DURING (-7d, now()) AND NOT status changed TO Done DURING (-7d, now())'
+        return f'project = "{team}" AND status changed TO "POST DEPLOYMENT QA" DURING ({window_start}, {window_end}) AND NOT status changed TO Done DURING ({window_start}, {window_end})'
     elif team == 'Global Payments Systems VS':
-        return f'project = "{team}" AND status changed TO "POST DEPLOYMENT QA" DURING (-7d, now()) AND NOT status changed TO Done DURING (-7d, now())'
+        return f'project = "{team}" AND status changed TO "POST DEPLOYMENT QA" DURING ({window_start}, {window_end}) AND NOT status changed TO Done DURING ({window_start}, {window_end})'
     elif team == 'Treasury VS':
-        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT CHECKS" DURING (-7d, now()) AND NOT status changed TO Done DURING (-7d, now())'
+        return f'project = "{team}" AND status CHANGED TO "POST DEPLOYMENT CHECKS" DURING ({window_start}, {window_end}) AND NOT status changed TO Done DURING ({window_start}, {window_end})'
     return None
 
 def get_total_deployments(jql_query):
     """
     Fetch the total number of deployments for a given JQL query.
     """
+    print(f"Fetching total deployments with JQL: {jql_query}")
     params = {
         'jql': jql_query,
         'fields': 'status',
@@ -118,18 +127,18 @@ def get_month():
     return [f"▶ {formatted_month} ◀"] + [""] * 6
 
 def timestamp():
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def get_weekly_date_range():
     # Get today's date
-    today = datetime.datetime.now().date()
+    today = datetime.now().date()
     
     # Calculate the start of the week (previous Sunday)
-    start_of_week = today - datetime.timedelta(days=today.weekday() + 1)
-    
+    start_of_week = today - timedelta(days=today.weekday() + 1)
+
     # Calculate the end of the week (next Saturday)
-    end_of_week = start_of_week + datetime.timedelta(days=6)
-    
+    end_of_week = start_of_week + timedelta(days=6)
+
     # Function to add ordinal suffix to day
     def add_ordinal_suffix(day):
         if 4 <= day <= 20 or 24 <= day <= 30:
