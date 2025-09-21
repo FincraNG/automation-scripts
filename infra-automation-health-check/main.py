@@ -92,7 +92,7 @@ token = os.getenv("FINCRA_GITHUB_TOKEN")
 
 # Set time range to cover July, August, and September (until today)
 # today = datetime.now()
-# start_date_initial = datetime(today.year, 7, 15, 0, 0, 0)  # July 15th of current year
+# start_date_initial = datetime(today.year, 9, 18, 0, 0, 0)  # September 18th of current year
 # end_date_final = datetime(today.year, today.month, today.day, 23, 59, 59)  # Today at end of day
 
 # print(f"Analyzing workflow runs from {start_date_initial.strftime('%Y-%m-%d')} to {end_date_final.strftime('%Y-%m-%d')}")
@@ -103,7 +103,7 @@ token = os.getenv("FINCRA_GITHUB_TOKEN")
     
 #     while current_date <= end_date_final:
 #         # Set start and end time for the current day
-#         start_date = current_date.replace(hour=0, minute=0, second=0)
+#         start_date = current_date.replace(hour=0, minute=0, second=0)   
 #         end_date = current_date.replace(hour=23, minute=59, second=59)
         
 #         print(f"Processing data for {start_date.strftime('%Y-%m-%d')}")
@@ -132,6 +132,9 @@ token = os.getenv("FINCRA_GITHUB_TOKEN")
 #         # Move to the next day
 #         current_date += timedelta(days=1)
 
+today = datetime.now()
+start_date = today.replace(hour=0, minute=0, second=0)  # Today at start of day
+end_date = today.replace(hour=23, minute=59, second=59)  # Today at end of day
 
 def get_workflow_stats(start_date, end_date):
     """Get statistics for workflow runs across all repos"""
@@ -189,37 +192,37 @@ def get_workflow_stats(start_date, end_date):
         "failed_actions": failed_actions
     }
 
-def update_google_sheet(stats):
-    """Update Google Sheet with workflow statistics"""
-    rows = [[
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        stats["total_runs"],
-        stats["successful_runs"],
-        stats["failed_runs"],
-    ]]
+# def update_google_sheet(stats):
+#     """Update Google Sheet with workflow statistics"""
+#     rows = [[
+#         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+#         stats["total_runs"],
+#         stats["successful_runs"],
+#         stats["failed_runs"],
+#     ]]
     
-    # Open the Google Sheet and append the data
-    print("Updating Google Sheet...")
-    sh = gc.open("Production Reliability Workbook")
-    worksheet = sh.worksheet("Infra Automation Health Check")
+#     # Open the Google Sheet and append the data
+#     print("Updating Google Sheet...")
+#     sh = gc.open("Production Reliability Workbook")
+#     worksheet = sh.worksheet("Infra Automation Health Check")
     
-    if rows:
-        worksheet.append_rows(rows, value_input_option="USER_ENTERED")
+#     if rows:
+#         worksheet.append_rows(rows, value_input_option="USER_ENTERED")
     
-    print(f"Successfully updated sheet with {len(rows)} entries.")
+#     print(f"Successfully updated sheet with {len(rows)} entries.")
 
-def main():
-    stats = get_workflow_stats()
-    print(f"Total runs: {stats['total_runs']}")
-    print(f"Successful runs: {stats['successful_runs']}")
-    print(f"Failed runs: {stats['failed_runs']}")
+# def main():
+#     stats = get_workflow_stats()
+#     print(f"Total runs: {stats['total_runs']}")
+#     print(f"Successful runs: {stats['successful_runs']}")
+#     print(f"Failed runs: {stats['failed_runs']}")
     
-    if stats["failed_actions"]:
-        print("\nFailed actions:")
-        for action in stats["failed_actions"]:
-            print(f"- {action['repo']}: {action['name']} ({action['url']})")
-    update_google_sheet(stats)
+#     if stats["failed_actions"]:
+#         print("\nFailed actions:")
+#         for action in stats["failed_actions"]:
+#             print(f"- {action['repo']}: {action['name']} ({action['url']})")
+#     update_google_sheet(stats)
 
 if __name__ == "__main__":
-    main()
-    # process_daily_stats()
+    # main()
+    process_daily_stats()

@@ -32,13 +32,13 @@ load_dotenv()
 # Initialize Google Sheets client using service account credentials
 # This requires a service_account.json file in the project directory
 # In GitHub Actions, this file is created from a base64-encoded secret
-gc = gspread.service_account()
+# gc = gspread.service_account()
 
 
 
 # Use the path from environment variable or default to service_account.json in current directory
-# service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
-# gc = gspread.service_account(filename=service_account_path)
+service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
+gc = gspread.service_account(filename=service_account_path)
 
 # Load teams from YAML file
 # This file contains a list of the teams 
@@ -57,12 +57,12 @@ jira_api_url = f"{JIRA_URL}/rest/api/3/search/jql"
 # Define JQL query to get issues moved to Done in the last 7 days
 
 
-window_start = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y/%m/%d')
-window_end = datetime.datetime.now().strftime('%Y/%m/%d')
+window_start = (datetime.now() - timedelta(days=7)).strftime('%Y/%m/%d')
+window_end = datetime.now().strftime('%Y/%m/%d')
 
 # #custom date range
-# window_start = datetime(2025, 9, 7, 0, 0, 0, tzinfo=timezone.utc).strftime('%Y-%m-%d')
-# window_end = datetime(2025, 9, 13, 23, 59, 59, tzinfo=timezone.utc).strftime('%Y-%m-%d')
+# window_start = datetime(2025, 9, 14, 0, 0, 0, tzinfo=timezone.utc).strftime('%Y-%m-%d')
+# window_end = datetime(2025, 9, 21, 23, 59, 59, tzinfo=timezone.utc).strftime('%Y-%m-%d')
 
 
 def get_jql_query_for_total_deployments(team):
@@ -105,7 +105,7 @@ def get_total_deployments(jql_query):
     """
     Fetch the total number of deployments for a given JQL query.
     """
-    print(f"Fetching total deployments with JQL: {jql_query}")
+    # print(f"Fetching total deployments with JQL: {jql_query}")
     params = {
         'jql': jql_query,
         'fields': 'status',
