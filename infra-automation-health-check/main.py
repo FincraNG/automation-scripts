@@ -29,12 +29,12 @@ load_dotenv()
 # Initialize Google Sheets client using service account credentials
 # This requires a service_account.json file in the project directory
 # In GitHub Actions, this file is created from a base64-encoded secret
-# gc = gspread.service_account()
+gc = gspread.service_account()
 
 
 # Use the path from environment variable or default to service_account.json in current directory
-service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
-gc = gspread.service_account(filename=service_account_path)
+# service_account_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'service_account.json')
+# gc = gspread.service_account(filename=service_account_path)
 
 # Load Infrastructure repos from yaml file
 infrastructure_repos = yaml.safe_load(open('infrastructure-repos.yml'))['infrastructure-repos']
@@ -192,37 +192,37 @@ def get_workflow_stats(start_date, end_date):
         "failed_actions": failed_actions
     }
 
-# def update_google_sheet(stats):
-#     """Update Google Sheet with workflow statistics"""
-#     rows = [[
-#         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-#         stats["total_runs"],
-#         stats["successful_runs"],
-#         stats["failed_runs"],
-#     ]]
+def update_google_sheet(stats):
+    """Update Google Sheet with workflow statistics"""
+    rows = [[
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        stats["total_runs"],
+        stats["successful_runs"],
+        stats["failed_runs"],
+    ]]
     
-#     # Open the Google Sheet and append the data
-#     print("Updating Google Sheet...")
-#     sh = gc.open("Production Reliability Workbook")
-#     worksheet = sh.worksheet("Infra Automation Health Check")
+    # Open the Google Sheet and append the data
+    print("Updating Google Sheet...")
+    sh = gc.open("Production Reliability Workbook")
+    worksheet = sh.worksheet("Infra Automation Health Check")
     
-#     if rows:
-#         worksheet.append_rows(rows, value_input_option="USER_ENTERED")
+    if rows:
+        worksheet.append_rows(rows, value_input_option="USER_ENTERED")
     
-#     print(f"Successfully updated sheet with {len(rows)} entries.")
+    print(f"Successfully updated sheet with {len(rows)} entries.")
 
-# def main():
-#     stats = get_workflow_stats()
-#     print(f"Total runs: {stats['total_runs']}")
-#     print(f"Successful runs: {stats['successful_runs']}")
-#     print(f"Failed runs: {stats['failed_runs']}")
+def main():
+    stats = get_workflow_stats(start_date, end_date)
+    print(f"Total runs: {stats['total_runs']}")
+    print(f"Successful runs: {stats['successful_runs']}")
+    print(f"Failed runs: {stats['failed_runs']}")
     
-#     if stats["failed_actions"]:
-#         print("\nFailed actions:")
-#         for action in stats["failed_actions"]:
-#             print(f"- {action['repo']}: {action['name']} ({action['url']})")
-#     update_google_sheet(stats)
+    if stats["failed_actions"]:
+        print("\nFailed actions:")
+        for action in stats["failed_actions"]:
+            print(f"- {action['repo']}: {action['name']} ({action['url']})")
+    update_google_sheet(stats)
 
 if __name__ == "__main__":
-    # main()
-    process_daily_stats()
+    main()
+    # process_daily_stats()
