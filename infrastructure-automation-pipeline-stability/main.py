@@ -21,7 +21,7 @@ Dependencies:
 import requests, yaml
 import os
 from dotenv import load_dotenv
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import gspread
 import json
 load_dotenv()
@@ -43,9 +43,29 @@ org_name = "FincraNG"
 # repo_name = "fincra-disbursements"
 token = os.getenv("FINCRA_GITHUB_TOKEN")
 
+def get_month():
+    now = datetime.now(timezone.utc)
+    # Get the first day of the current month
+    first_day_current_month = datetime(now.year, now.month, 1, tzinfo=timezone.utc)
+    # Last day of previous month is one day before first day of current month
+    window_end = first_day_current_month - timedelta(days=1)
+    # First day of previous month
+    window_start = datetime(window_end.year, window_end.month, 1, tzinfo=timezone.utc)
+    month = window_start.strftime('%B %Y')
+    return window_start, window_end, month
+
+window_start, window_end, month = get_month()
+
+# Custom range
+# window_start = datetime(2025, 9, 1, 0, 0, 0,)
+# window_end = datetime(2025, 9, 30, 23, 59, 59,)
+# month = window_start.strftime('%B %Y')
+
 
 def get_terraform_apply_workflow_stats():
     """Get statistics for workflow runs across all repos"""
+
+    print(f"Calculating stats for period: {month} {window_start.date()} to {window_end.date()}")
     repos = infrastructure_repos
     
     total_runs = 0
@@ -63,21 +83,6 @@ def get_terraform_apply_workflow_stats():
             "Accept": "application/vnd.github.v3+json"
         }
 
-        # For specific date range
-        # Set time to start of the day for start_date and end of the day for end_date
-        # start_date = datetime(2025, 8, 1, 0, 0, 0)
-        # end_date = datetime(2025, 9, 1, 23, 59, 59)
-
-        # response = requests.get(base_url, headers=headers)
-        # if response.status_code != 200:
-        #     continue   
-        # runs = response.json()["workflow_runs"]
-        # apply_monthly_runs = [
-        #     run for run in runs
-            # if start_date <= datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") < end_date and "apply" in run["path"]
-        # ]
-
-        one_month_ago = datetime.now() - timedelta(days=120)
 
         response = requests.get(base_url, headers=headers)
        
@@ -88,16 +93,17 @@ def get_terraform_apply_workflow_stats():
 
         plan_monthly_runs = [
             run for run in runs
-            if datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") > one_month_ago and "plan" in run["path"]
-            # if start_date <= datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") < end_date and "plan" in run["path"]
+            if window_start <= datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") < window_end and "plan" in run["path"]
         ]
+
 
         apply_monthly_runs = [
             run for run in runs
-            if datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") > one_month_ago and "apply" in run["path"]
-            # if start_date <= datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") < end_date and "apply" in run["path"]
+            if window_start <= datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ") < window_end and "apply" in run["path"]
         ]
 
+
+        print(f"{repo_name} - Apply runs: {len(apply_monthly_runs)}, Plan runs: {len(plan_monthly_runs)}")
         total_runs += len(apply_monthly_runs) + len(plan_monthly_runs)
 
         for run in apply_monthly_runs:
@@ -137,10 +143,6 @@ def get_terraform_apply_workflow_stats():
         "success_rate": success_rate
     }
 
-def get_month():
-    last_month = datetime.now().replace(day=1) - timedelta(days=1)
-    formatted_month = last_month.strftime("%B %Y")
-    return formatted_month
 
 def update_google_sheet(stats):
     """Update Google Sheet with workflow statistics"""
@@ -148,7 +150,7 @@ def update_google_sheet(stats):
     
     rows = [
         [
-            get_month(),
+            month,
             stats["total_runs"],
             stats["successful_plan_runs"],
             stats["failed_plan_runs"],
