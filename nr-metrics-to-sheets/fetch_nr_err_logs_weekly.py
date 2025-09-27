@@ -34,17 +34,41 @@ headers = {
 }
 
 def fetch_error_logs(service_name):
-    # Define NRQL query to get error logs
-    nrql = (
+
+    if service_name == 'checkout-core-prod':
+        # Special case for checkout-core-prod to use Log API
+        nrql = (
             f"FROM Log "
-            f"SELECT Count(*) AS `count`, max(timestamp) AS `lastSeen` "
-            f"WHERE entity.name = '{service_name}' "
-            f"AND level = 'error' "
-            f"SINCE 1 week ago "
-            f"UNTIL now "
-            f"FACET message, error.httpCode "
-            f"LIMIT 5 "
-            )
+            f"SELECT count(*) AS `count`, "
+            f"max(timestamp) AS `lastSeen`, "
+            f"latest( IF(error.httpCode IS NOT NULL AND error.httpCode != '', error.httpCode, "
+            f"             IF(newrelic.ERROR_CODE IS NOT NULL AND newrelic.ERROR_CODE != '', newrelic.ERROR_CODE, "
+            f"                IF(newrelicHttpCode IS NOT NULL AND newrelicHttpCode != '', newrelicHttpCode, "
+            f"                   IF(httpCode IS NOT NULL AND httpCode != '', httpCode, "
+            f"                      IF(response IS NOT NULL AND response != '', response, 'unknown')))))) AS `httpCode` "
+            f"WHERE entity.guids = 'NDMwMTE1NHxJTkZSQXxOQXwxODI2OTMyNTk5MDAwOTgyNjQ2' "
+            f"WHERE message LIKE '%error%' "
+            f"SINCE 1 week ago UNTIL now "
+            f"FACET message "
+            f"LIMIT 5"
+        )
+    else:
+        # General case for other services
+        nrql = (
+            f"FROM Log "
+            f"SELECT count(*) AS `count`, "
+        f"max(timestamp) AS `lastSeen`, "
+        f"latest( IF(error.httpCode IS NOT NULL AND error.httpCode != '', error.httpCode, "
+        f"             IF(newrelic.ERROR_CODE IS NOT NULL AND newrelic.ERROR_CODE != '', newrelic.ERROR_CODE, "
+        f"                IF(newrelicHttpCode IS NOT NULL AND newrelicHttpCode != '', newrelicHttpCode, "
+        f"                   IF(httpCode IS NOT NULL AND httpCode != '', httpCode, "
+        f"                      IF(response IS NOT NULL AND response != '', response, 'unknown')))))) AS `httpCode` "
+        f"WHERE entity.name = '{service_name}' "
+        f"  AND level = 'error' "
+        f"SINCE 1 week ago UNTIL now "
+        f"FACET message "
+        f"LIMIT 5"
+    )
 
     # Construct the GraphQL query with variables
     payload = {
@@ -74,12 +98,22 @@ def fetch_error_logs(service_name):
     results = data["data"]["actor"]["account"]["nrql"]["results"]
     return results
 
-# Fetch error logs for checkout-core-prod
+
 
 # Fetch total count of errors for a service
 def fetch_error_count(service_name):
     # Define NRQL query to get error count
-    nrql = (
+    if service_name == 'checkout-core-prod':
+        nrql = (
+                f"FROM Log "
+                f"SELECT Count(*) AS `count` "
+                f"WHERE entity.guids = 'NDMwMTE1NHxJTkZSQXxOQXwxODI2OTMyNTk5MDAwOTgyNjQ2' "
+                f"AND message LIKE '%error%' "
+                f"SINCE 1 week ago "
+                f"UNTIL now "
+                )
+    else:
+        nrql = (
             f"FROM Log "
             f"SELECT Count(*) AS `count` "
             f"WHERE entity.name = '{service_name}' "
@@ -175,9 +209,10 @@ if __name__ == "__main__":
             continue
 
         for entry in error_logs:
-            message, code_str = entry["facet"]
-            error_code = "N/A" if code_str is None else int(code_str)
+            message= entry["facet"]
+            # error_code = "N/A" if code_str is None else int(code_str)
             count = entry["count"]
+            error_code = "N/A" if entry["httpCode"] == "unknown" else int(entry["httpCode"])
             last_seen = convert_lastseen(entry["lastSeen"])
             pct_of_total_errors = count / total_errors * 100
 
